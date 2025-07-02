@@ -1,11 +1,55 @@
-<script setup lang="ts">
+<template>
+  
+  <div class="app-container">
+    <div 
+        ref="mapDiv" 
+        class="absolute w-full h-screen border"
+      ></div>
+          <!-- Floating marker (while dragging) -->
+    <markerCard
+  :divClass="['name-tag', { 'has-location': borderHasLocation, 'expanded': cardExpanded }]"
+  :isHidden="currentMode === 'floating' ? !showFloatingMarker : false"
+  :text="currentMode === 'floating' ? floatingText : confirmedMarker?.text"
+  :lat="currentMode === 'confirmed' && confirmedMarker ? confirmedMarker.lat : null"
+  :lng="currentMode === 'confirmed' && confirmedMarker ? confirmedMarker.lng : null"
+  :mode="currentMode"
+/>
+      
+      <div class="ui-overlay">
+        <div class=" header-controls flex p-8 gap-4 w-full ">
+          <div>
+            <primitivesButton @click="addTag()" :isHidden="!showAddTag" text="Add place"></primitivesButton>
+          </div>
+          <div class="flex gap-4">
+            <primitivesButton @click="confirmTag()" :isHidden="!showConfirmCancel" text="Confirm"></primitivesButton>
+            <primitivesButton @click="cancelTag()" :isHidden="!showConfirmCancel" text="Cancel"></primitivesButton>
+          </div>
+        </div>
 
-const mapDiv = ref(null)
+      </div>
+
+  </div>
+</template>
+
+<script setup lang="ts">
+import { createApp } from 'vue'
+import markerPopup from './markerPopup.vue'
+
 let map = null
 let googleScript = null
+const mapDiv = ref(null)
 const googleMapsRef = ref()
 const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY
 const markers = ref([]);
+let currentZoom = ref(0);
+const floatingText = ref("Move the map");
+const showFloatingMarker = ref(false);
+const showConfirmCancel = ref(false);
+const showAddTag = ref(true);
+const borderHasLocation = ref(false);
+const cardExpanded = ref(false);
+const currentMode = ref('floating');
+const confirmedMarker = ref<null | { lat: number, lng: number, text: string }>(null);
 
 
 const mapCenter = {
@@ -13,7 +57,7 @@ const mapCenter = {
   lng: 144.9867841,
 }
 
-// Define error handler
+// Error Handler
 function handleScriptError() {
   console.error('Google Maps failed to load. Check your API key and network connection.')
 }
@@ -33,8 +77,10 @@ onMounted(() => {
           mapTypeId: 'roadmap',
           
         });
-          
-        console.log('Map initialized successfully')
+        google.maps.event.addListener(map, 'zoom_changed', function() {
+          currentZoom = ref(map.getZoom());
+          console.log(currentZoom);
+        });
       } catch (error) {
         console.error('Error initializing map:', error)
       }
@@ -54,139 +100,110 @@ onMounted(() => {
   googleScript.onerror = handleScriptError
   
   document.head.appendChild(googleScript)
+
+
 })
 
+
+
 function addTag() {
-  const addButton = document.getElementById("add-tag");
-  const navButtons = document.getElementById("confirm-reject");
-  const floatingMarker = document.getElementById("floating-marker");
-  const floatingMarkerText = floatingMarker.querySelector(".name-tag");
+  cardExpanded.value = false;
+  showFloatingMarker.value = true;
+  showConfirmCancel.value = true;
+  showAddTag.value = false;
+  currentMode.value = "floating";
 
-  addButton.style.display = "none";
-  navButtons.classList.remove("hidden-nav");
-  floatingMarker.classList.remove("hidden");
+  // addButton.style.display = "none";
+  // navButtons.classList.remove("hidden-nav");
+  // floatingMarker.classList.remove("hidden");
 
+  google.maps.event.clearListeners(map, 'center_changed'); // Prevent multiple listeners
   google.maps.event.addListener(map, 'center_changed', function() {
     const currentCenter = map.getCenter();
     const lat = currentCenter.lat();
     const lng = currentCenter.lng();
 
-    // Remove highlight initially while loading new location
-    floatingMarkerText.classList.remove("has-location");
-    
     const geocoder = new google.maps.Geocoder();
     geocoder.geocode({ location: { lat, lng } }, (results, status) => {
       if (status === google.maps.GeocoderStatus.OK && results[0]) {
         let locality = null;
         let country = null;
-        
         for (const component of results[0].address_components) {
-          if (component.types.includes("locality") || 
-              component.types.includes("administrative_area_level_1")) {
+          if (component.types.includes("locality") || component.types.includes("administrative_area_level_1")) {
             locality = component.long_name;
-
             break;
           }
         }
-
         for (const component of results[0].address_components) {
           if (component.types.includes("country")) {
             country = component.long_name;
             break;
           }
         }
-
-        let displayedAddress = locality + ", " + country;
-        if (displayedAddress) {
-          // Update text and add highlight class
-          floatingMarkerText.textContent = displayedAddress;
-          floatingMarkerText.classList.add("has-location");
-        } else {
-          // Fallback to formatted address
-          floatingMarkerText.textContent = results[0].formatted_address;
-          floatingMarkerText.classList.add("has-location");
-        }
+        floatingText.value = locality && country ? `${locality}, ${country}` : results[0].formatted_address;
+        borderHasLocation.value = true;
+        
       } else {
-        console.error('Geocoder failed due to: ' + status);
-        floatingMarkerText.textContent = "Unknown location";
+        floatingText.value = "Unknown location";
+        borderHasLocation.value = false;
       }
+      
     });
+    
   });
 }
 
 function confirmTag() {
-  const addButton = document.getElementById("add-tag");
-  const navButtons = document.getElementById("confirm-reject");
-  const floatingMarker = document.getElementById("floating-marker");
-  const floatingMarkerText = floatingMarker.querySelector(".name-tag");
-
-
+  if (!map) {
+    console.error('Map is not initialized');
+    return;
+  }
 
   const currentCenter = map.getCenter();
   const lat = currentCenter.lat();
   const lng = currentCenter.lng();
 
+  // Create a new div for the marker content
   const markerContent = document.createElement("div");
-  markerContent.className = "name-tag";
-  markerContent.textContent = floatingMarkerText.textContent; 
+  const app = createApp(markerPopup, { text: floatingText.value, zoomLevel: currentZoom.value });
+  app.mount(markerContent);
 
+  // Create the marker with the custom content
   const marker = new google.maps.marker.AdvancedMarkerElement({
-    position: {lat, lng},
+    position: { lat, lng },
     map,
     content: markerContent,
     title: `New location at ${lat.toFixed(6)}, ${lng.toFixed(6)}`,
     gmpClickable: true,
   });
-  addButton.style.display = "block";
-  navButtons.classList.add("hidden-nav");
-  floatingMarker.classList.add("hidden");
+
   markers.value.push(marker);
 
+  showAddTag.value = true;
+  showConfirmCancel.value = false;
+  showFloatingMarker.value = false;
 }
 
 function cancelTag() {
-  const removeTagButton = document.getElementById("add-tag");
-  const navButtons = document.getElementById("confirm-reject");
-  const floatingMarker = document.getElementById("floating-marker");
-  removeTagButton.style.display = "block";
-  navButtons.classList.add("hidden-nav");
-  floatingMarker.classList.add("hidden");
+  cardExpanded.value = false;
+  showAddTag.value = true;
+  showConfirmCancel.value = false;
+  showFloatingMarker.value = false;
+  currentMode.value = "floating";
 }
 
+
+
+// // Remove the listener.
+// google.maps.event.removeListener(clickListener);
+
 onBeforeUnmount(() => {
-  // Clean up to prevent memory leaks
   if (googleScript && googleScript.parentNode) {
     googleScript.parentNode.removeChild(googleScript)
   }
   window.initMap = undefined
 })
 </script>
-
-<template>
-  
-  <div class="app-container">
-    <div 
-        ref="mapDiv" 
-        class="absolute w-full h-screen border"
-      ></div>
-      <div id="floating-marker" class="floating-marker hidden">
-      <div class="name-tag">Place me!</div>
-    </div>
-      <div class="ui-overlay">
-        <div class=" header-controls flex p-8 gap-4 w-full ">
-          <div>
-            <button @click="addTag()" id="add-tag" class="action-btn  py-2 px-4 bg-neutral-200/10 rounded-full">Add place</button>
-          </div>
-          <div id="confirm-reject" class="hidden-nav flex gap-4">
-                    <button @click="confirmTag()" class=" action-btn py-2 px-4 bg-neutral-200/10 rounded-full">Confirm</button>
-                    <button @click="cancelTag()" class=" confirm-reject action-btn py-2 px-4 bg-neutral-200/10 rounded-full">Cancel</button>
-          </div>
-        </div>
-
-      </div>
-
-  </div>
-</template>
 
 <style>
 /* Root container */
@@ -238,7 +255,7 @@ onBeforeUnmount(() => {
 }
 
 .name-tag.has-location {
-  border-color: #FFC107; /* Yellow border for valid locations */
+    border-color: #FFC107;
 }
 
 .name-tag::after {
@@ -254,28 +271,7 @@ onBeforeUnmount(() => {
   border-top: 8px solid #4285F4;
 }
 
-.floating-marker {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -100%); /* Centers horizontally and adjusts vertically */
-  z-index: 20;
-  pointer-events: none;
-  transition: transform 0.2s ease;
-}
 
-.floating-marker.hidden {
-  display: none;
-}
 
-/* Make the floating marker appear to float */
-@keyframes float {
-  0% { transform: translate(-50%, -100%); }
-  50% { transform: translate(-50%, -110%); }
-  100% { transform: translate(-50%, -100%); }
-}
 
-.floating-marker {
-  animation: float 2s ease-in-out infinite;
-}
 </style>
