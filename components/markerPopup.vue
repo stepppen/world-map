@@ -1,5 +1,5 @@
 <template>
-  <div class="card bg-neutral-200/10">
+  <div class="card bg-neutral-200/10" :style="{ transform: `scale(${sizeChange})` }">
     <h2>{{ text }}</h2>
     <input type="date" v-model="date" name="image-time">
     <img src="/landscape-placeholder.svg" alt="couples image" ref="chosenPic"> 
@@ -12,7 +12,10 @@
 </template>
 
 <script setup lang="ts">
-defineProps<{ text: string, zoomLevel: number }>();
+import { useMapStore } from '@/stores/mapStore'
+const mapStore = useMapStore()
+
+const { text } = defineProps<{ text: string }>();
 
 const date = ref('2018-07-22');
 const chosenPic = ref<HTMLImageElement | null>(null);
@@ -24,8 +27,13 @@ function onFileChange() {
   }
 }
 
-const sizeChange = computed(() =>{
+function scale (number, inMin, inMax, outMin, outMax) {
+    return (number - inMin) * (outMax - outMin) / (inMax - inMin) + outMin;
+}
 
+const sizeChange = computed(() =>{
+    let newScale = scale(mapStore.zoomLevel, 4, 14, 0.2, 1);
+    return newScale;
 })
 
 function onSave() {
@@ -45,6 +53,7 @@ function onDelete() {
 <style>
 /* CARD UI  */
 .card{
+  transform-origin: bottom center;
   padding: 1rem;
   border-radius: 5%;
   text-align: center;

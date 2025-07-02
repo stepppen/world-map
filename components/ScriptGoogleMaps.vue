@@ -34,6 +34,7 @@
 <script setup lang="ts">
 import { createApp } from 'vue'
 import markerPopup from './markerPopup.vue'
+import { useMapStore } from '@/stores/mapStore'
 
 let map = null
 let googleScript = null
@@ -50,6 +51,7 @@ const borderHasLocation = ref(false);
 const cardExpanded = ref(false);
 const currentMode = ref('floating');
 const confirmedMarker = ref<null | { lat: number, lng: number, text: string }>(null);
+const mapStore = useMapStore()
 
 
 const mapCenter = {
@@ -78,7 +80,7 @@ onMounted(() => {
           
         });
         google.maps.event.addListener(map, 'zoom_changed', function() {
-          currentZoom = ref(map.getZoom());
+          mapStore.zoomLevel = map.getZoom()
           console.log(currentZoom);
         });
       } catch (error) {
@@ -165,7 +167,7 @@ function confirmTag() {
 
   // Create a new div for the marker content
   const markerContent = document.createElement("div");
-  const app = createApp(markerPopup, { text: floatingText.value, zoomLevel: currentZoom.value });
+  const app = createApp(markerPopup, { text: floatingText.value });
   app.mount(markerContent);
 
   // Create the marker with the custom content
