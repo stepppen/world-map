@@ -3,8 +3,8 @@
     <h2>{{ text }}</h2>
     <input type="date" v-model="date" name="image-time">
     <img src="/landscape-placeholder.svg" alt="couples image" ref="chosenPic"> 
-    <label for="marker-file-input">update image</label>
-    <input class="hidden" type="file" accept="image/*" id="marker-file-input" ref="inputFile" @change="onFileChange">
+    <label :for="uniqueId">update image</label>
+    <input class="hidden" type="file" accept="image/*" :id="uniqueId" ref="inputFile" @change="onFileChange">
     <button @click="onSave">Save</button>
     <button @click="onCancel">Cancel</button>
     <button @click="onDelete">Delete</button>
@@ -20,6 +20,9 @@ const { text } = defineProps<{ text: string }>();
 const date = ref('2018-07-22');
 const chosenPic = ref<HTMLImageElement | null>(null);
 const inputFile = ref<HTMLInputElement | null>(null);
+
+// Generate a unique id for this instance
+const uniqueId = `marker-file-input-${Math.random().toString(36).slice(2)}`;
 
 function onFileChange() {
   if (inputFile.value && inputFile.value.files && inputFile.value.files[0] && chosenPic.value) {
