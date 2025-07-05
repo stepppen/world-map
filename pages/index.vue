@@ -4,5 +4,6 @@ import ScriptGoogleMaps from '~/components/ScriptGoogleMaps.vue';
 </script>
 
 <template>
+    <header />
     <ScriptGoogleMaps />
 </template>

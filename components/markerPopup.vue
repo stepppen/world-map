@@ -1,13 +1,24 @@
 <template>
   <div class="card bg-neutral-200/10" :style="{ transform: `scale(${sizeChange})` }">
-    <h2>{{ text }}</h2>
-    <input type="date" v-model="date" name="image-time">
-    <img src="/landscape-placeholder.svg" alt="couples image" ref="chosenPic"> 
+    <div class="flex justify-between">
+      <div>
+        <h2>{{ text }}</h2>
+        <input type="date" v-model="date" name="image-time">
+      </div>
+      <button @click="onCancel"><span class="material-symbols-outlined">
+close
+</span></button>
+    </div>
+    <div class="image-frame aspect-square mask-cover">
+      <img src="/landscape-placeholder.svg" class="hidden" alt="couples image" ref="chosenPic"> 
+    </div>
+    <UButton icon="i-lucide-sun" variant="subtle">Button</UButton>
     <label :for="uniqueId">update image</label>
-    <input class="hidden" type="file" accept="image/*" :id="uniqueId" ref="inputFile" @change="onFileChange">
-    <button @click="onSave">Save</button>
-    <button @click="onCancel">Cancel</button>
-    <button @click="onDelete">Delete</button>
+    <input type="file" class="hidden" accept="image/*" :id="uniqueId" ref="inputFile" @change="onFileChange">
+    <!-- <button @click="onDelete" class="cardButton">Delete Card</button> -->
+    <button @click="onDelete" class="cardButton">Save</button>
+    
+
   </div>
 </template>
 
@@ -27,6 +38,7 @@ const uniqueId = `marker-file-input-${Math.random().toString(36).slice(2)}`;
 function onFileChange() {
   if (inputFile.value && inputFile.value.files && inputFile.value.files[0] && chosenPic.value) {
     chosenPic.value.src = URL.createObjectURL(inputFile.value.files[0]);
+
   }
 }
 
@@ -35,7 +47,7 @@ function scale (number, inMin, inMax, outMin, outMax) {
 }
 
 const sizeChange = computed(() =>{
-    let newScale = scale(mapStore.zoomLevel, 4, 14, 0.2, 1);
+    let newScale = scale(mapStore.zoomLevel, 4, 14, 0.1, 0.8);
     return newScale;
 })
 
@@ -69,14 +81,43 @@ function onDelete() {
 .card img{
   width: 100%;
   height: 100%;
+  object-fit: cover;
+}
+
+.card h2{
   padding: 1rem;
   border-radius: 10%;
   margin-bottom: 1rem;
 
 }
+
+.image-frame{
+  width: 200px;
+  height: 200px;
+  padding: 1rem;
+  border-radius: 10%;
+  margin-bottom: 1rem;
+  border: white dashed 1px;
+}
 label {
     display: block;
-    background:rgb(36, 25, 247);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    cursor: pointer;
+    background:rgb(36, 25, 247, 0.2);
+    color: white;
+    padding: 1rem;
+    margin: 10px auto;
+    border-radius: calc(infinity * 1px);
+    cursor:pointer;
+}
+
+.cardButton{
+  width: 100%;
+    display: block;
+    background:rgb(205, 16, 69);
     color: white;
     padding: 1rem;
     margin: 10px auto;

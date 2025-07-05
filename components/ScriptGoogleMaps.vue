@@ -5,7 +5,6 @@
         ref="mapDiv" 
         class="absolute w-full h-screen border"
       ></div>
-          <!-- Floating marker (while dragging) -->
     <markerCard
   :divClass="['name-tag', { 'has-location': borderHasLocation, 'expanded': cardExpanded }]"
   :isHidden="currentMode === 'floating' ? !showFloatingMarker : false"
