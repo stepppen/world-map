@@ -20,4 +20,7 @@
     transition: 0.3s ease-in-out;
 }
 
-
+h2{
+    font-weight: 600;
+    font-size: large;
+}
