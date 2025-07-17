@@ -51,9 +51,6 @@ const inputFile = ref<HTMLInputElement | null>(null);
 let isOpen = ref(true);
 let wasSaved = ref(false);
 
-const instance = getCurrentInstance()
-const uuid = ref(instance.uid)
-
 
 // Generate a unique id for this instance
 const uniqueId = `marker-file-input-${Math.random().toString(36).slice(2)}`;

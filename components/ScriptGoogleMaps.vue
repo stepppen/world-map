@@ -58,6 +58,10 @@ const currentMode = ref('floating');
 const confirmedMarker = ref<null | { lat: number, lng: number, text: string }>(null);
 const mapStore = useMapStore()
 
+const client = useSupabaseClient()
+const markerCard = ref([])
+
+
 
 const mapCenter = {
   lat: -37.7995487,
@@ -70,8 +74,9 @@ function handleScriptError() {
 }
 
 
-onMounted(() => {
-  window.initMap = () => {
+onMounted(async () => {
+  
+   window.initMap = async () => {
     if (mapDiv.value) {
       try {
         map = new google.maps.Map(mapDiv.value, {
@@ -86,15 +91,51 @@ onMounted(() => {
         });
         google.maps.event.addListener(map, 'zoom_changed', function() {
           mapStore.zoomLevel = map.getZoom()
-          console.log(currentZoom);
+        });
+      
+     const { data, error } = await client.from('markerCard').select('*')
+     if (error) {
+          console.error('Error fetching markers from Supabase:', error);
+          return;
+        }
+    markerCard.value = data;
+
+    data.forEach(markerItem => {
+          const markerContent = document.createElement('div');
+
+          const app = createApp(markerPopup, {
+            text: markerItem.text || 'No text',
+            marker: null,
+            unmount: () => {
+              app.unmount();
+              markerContent.remove();
+            }
+          });
+
+          app.mount(markerContent);
+
+          const marker = new google.maps.marker.AdvancedMarkerElement({
+            position: {
+              lat: markerItem.latitude,
+              lng: markerItem.longitude
+            },
+            map,
+            content: markerContent,
+            title: `Saved marker at ${markerItem.latitude}, ${markerItem.longitude}`,
+            gmpClickable: true,
+          });
+
+          app._instance.props.marker = marker;
+          markers.value.push(marker);
         });
       } catch (error) {
-        console.error('Error initializing map:', error)
+        console.error('Error initializing map:', error);
       }
     } else {
-      console.error('Map container not found')
+      console.error('Map container not found');
     }
-  }
+  };
+  
 
 
   // Load Google Maps API script
@@ -160,7 +201,9 @@ function addTag() {
   });
 }
 
-function confirmTag() {
+const confirmTag = async () => {
+  
+
   if (!map) {
     console.error('Map is not initialized');
     return;
@@ -181,7 +224,7 @@ function confirmTag() {
     } });
     app.mount(markerContent);
 
-  // Create the marker with the custom content
+  // Create new marker
   const marker = new google.maps.marker.AdvancedMarkerElement({
     position: { lat, lng },
     map,
@@ -189,7 +232,7 @@ function confirmTag() {
     title: `New location at ${lat.toFixed(6)}, ${lng.toFixed(6)}`,
     gmpClickable: true,
   });
-app._instance.props.marker = marker;
+  app._instance.props.marker = marker;
   markers.value.push(marker);
 
 
@@ -197,6 +240,16 @@ app._instance.props.marker = marker;
   showAddTag.value = true;
   showConfirmCancel.value = false;
   showFloatingMarker.value = false;
+
+  const { error } = await client.from('markerCard').insert({
+    place: floatingText.value,
+    latitude: lat,
+    longitude: lng,
+  }).select().single()
+
+  markerCard.value.push(data)
+
+  if (error) throw error
 }
 
 function cancelTag() {
