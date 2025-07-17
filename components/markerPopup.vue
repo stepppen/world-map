@@ -22,6 +22,7 @@
     
 
     <div v-if="!wasSaved && isOpen">
+      
       <label :for="uniqueId">update image</label>
       <input type="date" v-model="date" name="image-time">
       <input type="file" class="hidden" accept="image/*" :id="uniqueId" ref="inputFile" @change="onFileChange">
@@ -34,15 +35,24 @@
 
 <script setup lang="ts">
 import { useMapStore } from '@/stores/mapStore'
+import { ref, getCurrentInstance } from 'vue'
 const mapStore = useMapStore()
 
-const { text } = defineProps<{ text: string }>();
+const props = defineProps<{
+  text: string,
+  marker: google.maps.marker.AdvancedMarkerElement | null,
+  unmount: () => void
+}>()
+
 
 const date = ref('2018-07-22');
 const chosenPic = ref<HTMLImageElement | null>(null);
 const inputFile = ref<HTMLInputElement | null>(null);
 let isOpen = ref(true);
 let wasSaved = ref(false);
+
+const instance = getCurrentInstance()
+const uuid = ref(instance.uid)
 
 
 // Generate a unique id for this instance
@@ -70,7 +80,8 @@ function onSave() {
 }
 
 function onDelete() {
-  alert('Delete clicked!');
+  props.marker.map = null; 
+  props.unmount();         
 }
 
 

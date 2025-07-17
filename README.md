@@ -3,6 +3,7 @@ A digital pinboard to document travel across the globe designed for exploration 
 
 ## To-Do List
 [] Fix Google Maps API
+[] Delete Card functionality
 [] Add Card View vs Map View Tab
 [] Add DB 
 [] Add time-based trail

@@ -172,8 +172,14 @@ function confirmTag() {
 
   // Create a new div for the marker content
   const markerContent = document.createElement("div");
-  const app = createApp(markerPopup, { text: floatingText.value });
-  app.mount(markerContent);
+  const app = createApp(markerPopup, { 
+    text: floatingText.value, 
+    marker: null,
+    unmount: () => {
+      app.unmount();
+      markerContent.remove(); 
+    } });
+    app.mount(markerContent);
 
   // Create the marker with the custom content
   const marker = new google.maps.marker.AdvancedMarkerElement({
@@ -183,8 +189,10 @@ function confirmTag() {
     title: `New location at ${lat.toFixed(6)}, ${lng.toFixed(6)}`,
     gmpClickable: true,
   });
-
+app._instance.props.marker = marker;
   markers.value.push(marker);
+
+
 
   showAddTag.value = true;
   showConfirmCancel.value = false;
