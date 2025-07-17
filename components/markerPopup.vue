@@ -28,13 +28,7 @@
       <button @click="onDelete" class="cardButton">Delete Card</button>
       <button @click="onSave" class="cardButton">Save</button>
     </div>
-
   </div>
-  <!-- <div v-if="!isOpen" @click="isOpen = !isOpen" class="w-64 h-64 bg-neutral-200/10" ref="cardRef" :style="{ transform: `scale(${sizeChange})` }">
-    <div class="image-frame aspect-square mask-cover">
-      <img src="/landscape-placeholder.svg" alt="couples image" ref="chosenPic"> 
-    </div>
-  </div> -->
   
 </template>
 
@@ -47,7 +41,6 @@ const { text } = defineProps<{ text: string }>();
 const date = ref('2018-07-22');
 const chosenPic = ref<HTMLImageElement | null>(null);
 const inputFile = ref<HTMLInputElement | null>(null);
-const cardRef = ref<HTMLElement | null>(null);
 let isOpen = ref(true);
 let wasSaved = ref(false);
 

@@ -6,16 +6,17 @@
         class="absolute w-full h-screen border"
       ></div>
     <markerCard
-  :divClass="['name-tag', { 'has-location': borderHasLocation, 'expanded': cardExpanded }]"
-  :isHidden="currentMode === 'floating' ? !showFloatingMarker : false"
-  :text="currentMode === 'floating' ? floatingText : confirmedMarker?.text"
-  :lat="currentMode === 'confirmed' && confirmedMarker ? confirmedMarker.lat : null"
-  :lng="currentMode === 'confirmed' && confirmedMarker ? confirmedMarker.lng : null"
-  :mode="currentMode"
-/>
+      :divClass="['name-tag', { 'has-location': borderHasLocation, 'expanded': cardExpanded }]"
+      :isHidden="currentMode === 'floating' ? !showFloatingMarker : false"
+      :text="currentMode === 'floating' ? floatingText : confirmedMarker?.text"
+      :lat="currentMode === 'confirmed' && confirmedMarker ? confirmedMarker.lat : null"
+      :lng="currentMode === 'confirmed' && confirmedMarker ? confirmedMarker.lng : null"
+      :mode="currentMode"
+    />
       
-      <div class="ui-overlay">
-        <div class=" header-controls flex p-8 gap-4 w-full ">
+    <div class="ui-overlay">
+      <div class=" header-controls flex justify-between p-8 gap-4 w-full ">
+        <div>
           <div>
             <primitivesButton @click="addTag()" :isHidden="!showAddTag" text="Add place"></primitivesButton>
           </div>
@@ -24,8 +25,13 @@
             <primitivesButton @click="cancelTag()" :isHidden="!showConfirmCancel" text="Cancel"></primitivesButton>
           </div>
         </div>
-
+        <Navigation />
       </div>
+
+    </div>
+    <div >
+      
+    </div>
 
   </div>
 </template>
@@ -93,9 +99,9 @@ onMounted(() => {
 
   // Load Google Maps API script
   googleScript = document.createElement('script')
-  googleScript.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&callback=initMap`
-  googleScript.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&callback=initMap&v=beta&libraries=marker`
-  googleScript.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&callback=initMap&v=beta&libraries=marker,geocoding`
+  googleScript.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&loading=async&callback=initMap`
+  googleScript.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&loading=async&callback=initMap&v=beta&libraries=marker`
+  googleScript.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&loading=async&callback=initMap&v=beta&libraries=marker,geocoding`
   googleScript.async = true
   googleScript.defer = true
   googleScript.onerror = handleScriptError

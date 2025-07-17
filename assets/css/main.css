@@ -1,9 +1,15 @@
 @import "tailwindcss";
-
+@import "@nuxt/ui";
 
 * {
     box-sizing: border-box;
   }
+
+:root {
+  --ui-primary: rgb(184, 184, 184);
+  --border-color-default: rgb(129, 129, 129);
+  --radius-3xl: calc(var(--ui-radius) * 6); 
+}
 
 .action-btn{
     color: rgb(184, 184, 184);

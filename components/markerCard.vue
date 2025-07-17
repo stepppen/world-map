@@ -9,7 +9,7 @@
 </template>
 
 <script setup lang="ts">
-defineProps<{text: string, divClass: string, isHidden?: boolean, mode: 'floating' | 'confirmed'}>();
+defineProps<{text: string, divClass: Array<string>, isHidden?: boolean, mode: 'floating' | 'confirmed'}>();
 </script>
 <style>
 
