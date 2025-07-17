@@ -18,15 +18,8 @@ const items = ref<TabsItem[]>([
     :content="false"
     :items="items"
     color="primary"
-    class="font-bold rounded-full"
-    :ui="{
-      wrapper: 'flex gap-2',
-      list: 'flex gap-2',
-      item: {
-        base: 'action-btn px-4 py-2 rounded-full border border-gray-500 text-gray-400 backdrop-blur-md transition ease-in-out duration-300',
-        active: 'text-white bg-[oklch(50.8%_0_0)]'
-      }
-    }"
+    variant="pill"
+    
   />
 </template>
 
