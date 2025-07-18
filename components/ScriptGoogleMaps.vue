@@ -25,7 +25,7 @@
             <primitivesButton @click="cancelTag()" :isHidden="!showConfirmCancel" text="Cancel"></primitivesButton>
           </div>
         </div>
-        <Navigation />
+        <NavigationTab />
       </div>
 
     </div>
@@ -40,6 +40,7 @@
 import { createApp } from 'vue'
 import markerPopup from './markerPopup.vue'
 import { useMapStore } from '@/stores/mapStore'
+// import NavigationTab from './navigationTab.vue'
 
 let map = null
 let googleScript = null
