@@ -73,11 +73,6 @@ const sizeChange = computed(() =>{
     return newScale;
 })
 
-function onSave() {
-  wasSaved.value = true;
-
-}
-
 const onDelete = async () => {
   console.log(props.marker)
   props.marker.map = null; 
@@ -87,6 +82,15 @@ const onDelete = async () => {
   if (error) throw error
 }
 
+const onSave = async () => {
+  wasSaved.value = true;
+  console.log(date.value);
+  const { error } = await client.from('markerCard').insert({
+    date_of_image: date.value
+  }).select().single()
+  // markerCard.value.push(data)
+  if (error) throw error
+}
 </script>
 
 

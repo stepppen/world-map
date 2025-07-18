@@ -249,7 +249,7 @@ const confirmTag = async () => {
     longitude: lng,
   }).select().single()
 
-  markerCard.value.push(data)
+  // markerCard.value.push(data)
 
   if (error) throw error
 }
