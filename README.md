@@ -1,5 +1,5 @@
 # World Map Image Pinboard
-A digital pinboard to document travel across the globe designed for exploration of new places. The map is made for couples to post their photo of a place and to explore past and future destinations.
+A digital pinboard to document travel across the globe designed for exploration of new places. The map is for posting photos of a place and to explore past and future destinations.
 
 ## To-Do List
 [] Fix Google Maps API.    

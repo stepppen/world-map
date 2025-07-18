@@ -37,10 +37,12 @@
 import { useMapStore } from '@/stores/mapStore'
 import { ref, getCurrentInstance } from 'vue'
 const mapStore = useMapStore()
+const client = useSupabaseClient()
 
 const props = defineProps<{
   text: string,
   marker: google.maps.marker.AdvancedMarkerElement | null,
+  markerData: object,
   unmount: () => void
 }>()
 
@@ -76,13 +78,17 @@ function onSave() {
 
 }
 
-function onDelete() {
+const onDelete = async () => {
+  console.log(props.marker)
   props.marker.map = null; 
-  props.unmount();         
+  props.unmount();
+  
+  const { error } = await client.from('markerCard').delete().eq('id', props.markerData.id)
+  if (error) throw error
 }
 
-
 </script>
+
 
 <style>
 /* CARD UI  */

@@ -106,6 +106,7 @@ onMounted(async () => {
           const app = createApp(markerPopup, {
             text: markerItem.text || 'No text',
             marker: null,
+            markerData: markerItem,
             unmount: () => {
               app.unmount();
               markerContent.remove();
@@ -218,6 +219,7 @@ const confirmTag = async () => {
   const app = createApp(markerPopup, { 
     text: floatingText.value, 
     marker: null,
+    // markerData: markerItem,
     unmount: () => {
       app.unmount();
       markerContent.remove(); 
