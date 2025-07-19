@@ -8,8 +8,9 @@ import ScriptGoogleMaps from '~/components/ScriptGoogleMaps.vue';
 
 <template>
     <div>
-        <Map />
+        
         <Navigation />
+        <Maptiler />
         <!-- <ScriptGoogleMaps /> -->
     </div>
 </template>
