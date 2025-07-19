@@ -1,13 +1,13 @@
 <template>
   <div class="app-container">
     <MglMap
-      :map-style="style"
+      :map-style="styleJson"
       :center="mapCenter"
       :zoom="zoom"
       width="100vw"
       height="100vh"
     >
-      <MglNavigationControl />
+      <!-- <MglNavigationControl /> -->
     </MglMap>
         <markerCard
       :divClass="['name-tag', { 'has-location': borderHasLocation, 'expanded': cardExpanded }]"
@@ -40,7 +40,8 @@ import { createApp } from 'vue'
 import markerPopup from './markerPopup.vue'
 import { useMapStore } from '@/stores/mapStore'
 
-const style = 'https://demotiles.maplibre.org/style.json';
+//const styleJson = await fetch('/assets/content/positron.json').then(res => res.json());
+import styleJson from '~/assets/content/positron.json'
 const mapCenter = {
   lat: 50,
   lng: 10,
