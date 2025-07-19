@@ -2,7 +2,8 @@
 A digital pinboard to document travel across the globe designed for exploration of new places. The map is for posting photos of a place and to explore past and future destinations.
 
 ## To-Do List
-[] Fix Google Maps API.    
+[X] Change to mapslibre lib.
+[] Add google maps api functionality.        
 [X] Delete Card functionality.  
 [] Add Card View vs Map View Tab.  
 [] Add DB.   
