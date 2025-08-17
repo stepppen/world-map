@@ -22,11 +22,11 @@ const mapContainer = shallowRef(null);
 const map = shallowRef(null);
 const confirmedMarker = ref(null)
 const markers = ref([]);
-const style = "https://api.maptiler.com/maps/0198248a-991e-798a-ad3f-dfc8fa370879/style.json?key=EHWlpvDSVzgBjMi199Y4";
+const style = `https://api.maptiler.com/maps/0198248a-991e-798a-ad3f-dfc8fa370879/style.json?key=${import.meta.env.VITE_MAPTILER_API_KEY}`
 let emit = defineEmits(['update-floating-text']);
 
 onMounted(() => {
-  maptilersdk.config.apiKey = 'EHWlpvDSVzgBjMi199Y4';
+  maptilersdk.config.apiKey = import.meta.env.VITE_MAPTILER_API_KEY;
   const initialState = { lng: 139.753, lat: 35.6844, zoom: 14 };
 
   map.value = markRaw(new maptilersdk.Map({
@@ -85,14 +85,8 @@ watch(() => props.currentMode, async (newMode) => {
     });
     app.mount(markerContent);
 
-    // const popup = new maptilersdk.Popup()
-    //   .setLngLat([center.lng, center.lat])
-    //   .setDOMContent(markerContent); // use setDOMContent instead of setHTML
-
-
     const marker = new maptilersdk.Marker({element: markerContent})
       .setLngLat([center.lng, center.lat])
-      // .setPopup(popup)
       .addTo(map.value);
 
     app._instance.props.marker = marker;
