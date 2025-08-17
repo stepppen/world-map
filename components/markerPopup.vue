@@ -15,13 +15,13 @@
     </div>
     <div class="image-frame aspect-square mask-cover">
       <img @click="isOpen = !isOpen" src="/landscape-placeholder.svg" alt="couples image" ref="chosenPic"> 
-      <div class="hovered-square flex justify-center items-center" @click="wasSaved = !wasSaved">
+      <!-- <div class="hovered-square flex justify-center items-center" @click="wasSaved = !wasSaved">
         <UButton class="edit-button" icon="material-symbols:edit-outline" variant="subtle" ></UButton>
-      </div>
+      </div> -->
     </div>
     
 
-    <div v-if="!wasSaved && isOpen">
+    <div v-if=" isOpen">
       
       <label :for="uniqueId">update image</label>
       <input type="date" v-model="date" name="image-time">
@@ -34,6 +34,7 @@
 </template>
 
 <script setup lang="ts">
+import * as maptilersdk from '@maptiler/sdk';
 import { useMapStore } from '@/stores/mapStore'
 import { ref, getCurrentInstance } from 'vue'
 const mapStore = useMapStore()
@@ -41,8 +42,8 @@ const client = useSupabaseClient()
 
 const props = defineProps<{
   text: string,
-  marker: google.maps.marker.AdvancedMarkerElement | null,
-  markerData: object,
+  marker: maptilersdk.Marker | null,
+  markerData?: object,
   unmount: () => void
 }>()
 
@@ -74,22 +75,21 @@ const sizeChange = computed(() =>{
 })
 
 const onDelete = async () => {
-  console.log(props.marker)
-  props.marker.map = null; 
   props.unmount();
   
-  const { error } = await client.from('markerCard').delete().eq('id', props.markerData.id)
-  if (error) throw error
+  // const { error } = await client.from('markerCard').delete().eq('id', props.markerData.id)
+  // if (error) throw error
 }
 
 const onSave = async () => {
-  wasSaved.value = true;
+  isOpen.value = false;
+  // wasSaved.value = true;
   console.log(date.value);
-  const { error } = await client.from('markerCard').insert({
-    date_of_image: date.value
-  }).select().single()
+  // const { error } = await client.from('markerCard').insert({
+  //   date_of_image: date.value
+  // }).select().single()
   // markerCard.value.push(data)
-  if (error) throw error
+  // if (error) throw error
 }
 </script>
 

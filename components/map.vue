@@ -234,7 +234,7 @@ function cancelTag() {
   currentMode.value = "floating";
 }
 </script>
-<style>
+<style scoped>
 /* Root container */
 .app-container {
   position: relative;

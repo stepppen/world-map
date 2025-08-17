@@ -159,9 +159,6 @@ function addTag() {
   showAddTag.value = false;
   currentMode.value = "floating";
 
-  // addButton.style.display = "none";
-  // navButtons.classList.remove("hidden-nav");
-  // floatingMarker.classList.remove("hidden");
 
   google.maps.event.clearListeners(map, 'center_changed'); // Prevent multiple listeners
   google.maps.event.addListener(map, 'center_changed', function() {

@@ -2,14 +2,18 @@
   <div v-if="mode === 'floating'" class="floating-marker" :class="{ hidden: isHidden }">
     <div :class="divClass">{{ text }}</div>
   </div>
-  <div v-else-if="mode === 'confirmed'" class="confirmed-marker">
-    <div :class="divClass">{{ text }}</div>
-    <input type="file" accept="image/*">
+  <div v-else-if="mode === 'confirmed'" class="confirmed-marker hidden">
+    <!-- <div :class="divClass">{{ text }}</div>
+    <input type="file" accept="image/*"> -->
   </div>
 </template>
 
 <script setup lang="ts">
-defineProps<{text: string, divClass: Array<string>, isHidden?: boolean, mode: 'floating' | 'confirmed'}>();
+defineProps<{
+  text?: string, 
+  divClass?: Array<string>, 
+  isHidden?: boolean, 
+  mode: 'floating' | 'confirmed'}>();
 </script>
 <style>
 
@@ -18,7 +22,10 @@ defineProps<{text: string, divClass: Array<string>, isHidden?: boolean, mode: 'f
   position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -100%); /* Centers horizontally and adjusts vertically */
+  background-color: #dcdcdc;
+  border-radius: 8px;
+  color: #2c2c2c;
+  transform: translate(-50%, -100%); 
   z-index: 20;
   pointer-events: none;
   transition: transform 0.2s ease;
