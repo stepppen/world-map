@@ -2,7 +2,7 @@
     <div class="h-full overflow-hidden">
         <NavigationTab 
         @add-tag="addTag" 
-        @confirm-tag="confirmTag" 
+        @confirm-tag="initiateSave"
         @remove-tag="removeTag" 
         :showConfirmCancel="showConfirmCancel"
         :showAddTag="showAddTag"
@@ -15,6 +15,7 @@
         :borderHasLocation="borderHasLocation"
         :cardExpanded="cardExpanded"
         @update-floating-text="val => floatingText = val"
+        @confirmed-marker="handleConfirmedMarker"
         />
     </div>
 </template>
@@ -28,6 +29,11 @@ const cardExpanded = ref(false);
 const borderHasLocation = ref(false);
 let currentMode = ref("")
 const floatingText = ref("Move the map");
+const selectedMarkerData = ref(null);
+
+
+
+
 
 function addTag() {
   cardExpanded.value = false;
@@ -38,20 +44,26 @@ function addTag() {
   borderHasLocation.value = true;
 }
 
-const confirmTag = () => {
+const handleConfirmedMarker =  (markerData) => {
+  selectedMarkerData.value = markerData;
+};
+
+const initiateSave = async () => {
     currentMode.value = "confirmed";
-    // console.log("confirm")
     showConfirmCancel.value = false
     showAddTag.value = true
     showFloatingMarker.value = false;
-    //---DB logic
-    // const { error } = await client.from('markerCard').insert({
-    //   place: floatingText.value,
-    //   latitude: lat,
-    //   longitude: lng,
-    // }).select().single()
-    // if (error) throw error
 }
+
+
+
+// const saveMarkerToFirebase = async (markerDataToSave) => {
+//       if (!markerDataToSave) {
+//         console.error("No marker data to confirm!");
+//         return;
+//     }
+// };
+
 
 function removeTag() {
     cardExpanded.value = false;

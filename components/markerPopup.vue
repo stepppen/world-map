@@ -14,14 +14,14 @@
       </div> -->
     </div>
     <div class="image-frame aspect-square mask-cover">
-      <img @click="isOpen = !isOpen" src="/landscape-placeholder.svg" alt="couples image" ref="chosenPic"> 
+      <img @click="isOpen = !isOpen" :src="imageSrc || '/landscape-placeholder.svg'" alt="couples image" ref="chosenPic"> 
       <!-- <div class="hovered-square flex justify-center items-center" @click="wasSaved = !wasSaved">
         <UButton class="edit-button" icon="material-symbols:edit-outline" variant="subtle" ></UButton>
       </div> -->
     </div>
     
 
-    <div v-if=" isOpen">
+    <div v-if="isOpen">
       
       <label :for="uniqueId">update image</label>
       <input type="date" v-model="date" name="image-time">
@@ -34,25 +34,35 @@
 </template>
 
 <script setup lang="ts">
+import { useNuxtApp } from '#app';
 import * as maptilersdk from '@maptiler/sdk';
 import { useMapStore } from '@/stores/mapStore'
 import { ref, getCurrentInstance } from 'vue'
+import { ref as dbRef, update, remove as deleteDb, get } from 'firebase/database'; // 'get' is for reading
+import { getStorage, ref as storageRef, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
+import type { FirebaseStorage } from 'firebase/storage';
 const mapStore = useMapStore()
-const client = useSupabaseClient()
-
+// const { $firebaseDb } = useNuxtApp();
 const props = defineProps<{
   text: string,
-  marker: maptilersdk.Marker | null,
+  marker?: maptilersdk.Marker | null,
   markerData?: object,
+  markerId: string,
+  imageSrc?: string,
+  isOpen?: boolean
   unmount: () => void
 }>()
 
+const { $firebaseDb, $firebaseApp } = useNuxtApp();
+const storage: FirebaseStorage = getStorage($firebaseApp);
 
-const date = ref('2018-07-22');
+
+const date = ref(new Date().toISOString().split('T')[0]);
 const chosenPic = ref<HTMLImageElement | null>(null);
 const inputFile = ref<HTMLInputElement | null>(null);
-let isOpen = ref(true);
-let wasSaved = ref(false);
+let isOpen = ref(props.isOpen ?? false);
+// let wasSaved = ref(false);
+let emit = defineEmits(['complete-save'])
 
 
 // Generate a unique id for this instance
@@ -75,22 +85,93 @@ const sizeChange = computed(() =>{
 })
 
 const onDelete = async () => {
-  props.unmount();
   
-  // const { error } = await client.from('markerCard').delete().eq('id', props.markerData.id)
-  // if (error) throw error
-}
+  if (!props.markerId) {
+    console.warn("Cannot delete: markerId is not available.");
+    props.unmount();
+    return;
+  }
+
+  const markerDataRef = dbRef($firebaseDb, `locations/${props.markerId}`);
+
+  try {
+    // 1. Get current data to check for image URL
+    const snapshot = await get(markerDataRef);
+    const data = snapshot.val();
+
+    if (data && data.imageUrl) {
+      // 2. Delete image from Cloud Storage
+      
+      const imageStorageRef = storageRef(storage, data.imageUrl);
+      try {
+        await deleteObject(imageStorageRef);
+        console.log("Image deleted from storage.");
+      } catch (error) {
+        console.error("Error deleting image from storage:", error);
+        // Continue to delete DB entry even if image deletion fails
+      }
+    }
+
+    // 3. Delete entry from Realtime Database
+    await deleteDb(markerDataRef);
+    console.log("Marker entry deleted from Realtime Database.");
+    props.unmount(); // Unmount the popup after successful deletion
+  } catch (error) {
+    console.error("Error deleting marker:", error);
+    // Handle error, maybe show a toast message
+  }
+};
+
 
 const onSave = async () => {
+  console.log(getStorage)
   isOpen.value = false;
-  // wasSaved.value = true;
-  console.log(date.value);
-  // const { error } = await client.from('markerCard').insert({
-  //   date_of_image: date.value
-  // }).select().single()
-  // markerCard.value.push(data)
-  // if (error) throw error
-}
+  let imageUrl: string | null = null; // Initialize to null
+
+  // Ensure we have a markerId to update
+  if (!props.markerId) {
+    console.error("Cannot save: markerId prop is missing.");
+    emit('complete-save', false);
+    return;
+  }
+
+  // 1. Upload image to Cloud Storage if a file is selected
+  if (inputFile.value && inputFile.value.files && inputFile.value.files[0]) {
+    const file = inputFile.value.files[0];
+    // Create a unique path for the image in storage using the markerId
+    const imagePath = `marker_images/${props.markerId}/${file.name}`;
+    const imageStorageRef = storageRef(storage, imagePath);
+
+    try {
+      const snapshot = await uploadBytes(imageStorageRef, file);
+      imageUrl = await getDownloadURL(snapshot.ref);
+      console.log("Image uploaded to Cloud Storage:", imageUrl);
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      // Even if image upload fails, try to save other data
+    }
+  }
+
+  // 2. Update the existing marker data in Realtime Database
+  const markerRef = dbRef($firebaseDb, `locations/${props.markerId}`);
+  const updates: { [key: string]: any } = {
+    date: date.value, // Save the selected date
+  };
+
+  if (imageUrl) {
+    updates.imageUrl = imageUrl; // Add the image URL if uploaded successfully
+  }
+
+  try {
+    await update(markerRef, updates); // Use 'update' to merge new data into the existing record
+    console.log("Marker data updated in Realtime Database.");
+    emit('complete-save', true); // Emit success
+  } catch (error) {
+    console.error("Error updating marker in Realtime Database:", error);
+    emit('complete-save', false); // Emit failure
+    // Handle the error (e.g., show a user notification)
+  }
+};
 </script>
 
 

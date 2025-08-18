@@ -17,15 +17,22 @@ import * as maptilersdk from '@maptiler/sdk';
 import '@maptiler/sdk/dist/maptiler-sdk.css';
 import { createApp } from 'vue'
 import markerPopup from '@/components/markerPopup.vue'
+import { ref as dbRef, push, set, onValue } from 'firebase/database';
+import { useNuxtApp } from '#app';
+
 
 const mapContainer = shallowRef(null);
 const map = shallowRef(null);
 const confirmedMarker = ref(null)
 const markers = ref([]);
+let imageSrc = ref(null)
 const style = `https://api.maptiler.com/maps/0198248a-991e-798a-ad3f-dfc8fa370879/style.json?key=${import.meta.env.VITE_MAPTILER_API_KEY}`
-let emit = defineEmits(['update-floating-text']);
+let emit = defineEmits(['update-floating-text', 'confirmed-marker', 'image-src']);
 
-onMounted(() => {
+
+const { $firebaseDb } = useNuxtApp();
+
+onMounted(async () => {
   maptilersdk.config.apiKey = import.meta.env.VITE_MAPTILER_API_KEY;
   const initialState = { lng: 139.753, lat: 35.6844, zoom: 14 };
 
@@ -35,7 +42,45 @@ onMounted(() => {
     center: [initialState.lng, initialState.lat],
     zoom: initialState.zoom
   }));
-  
+  const locationsRef = dbRef($firebaseDb, 'locations');
+  const renderedMarkerIds = new Set();
+  onValue(locationsRef, (marker) => {
+    
+    const data = marker.val();
+    if (!data) return; 
+    const entries = Object.entries(data); 
+    // if (Object.keys(entries).length === 0)return
+    // console.log(entries)
+    entries.forEach(([id, marker]) => {
+
+      if (renderedMarkerIds.has(id)) return;
+      let imageSrcForMarker = marker.imageUrl || null;
+      renderedMarkerIds.add(id);
+      const markerContent = document.createElement("div");
+      const app = createApp(markerPopup, {
+        text: marker.name,
+        markerId: id,
+        imageSrc: imageSrcForMarker,
+        isOpen: false,
+        unmount: () => {
+          app.unmount();
+          markerContent.remove();
+        }
+      });
+      app.mount(markerContent);
+      // console.log(marker.lng)
+      const mapMarker = new maptilersdk.Marker({element: markerContent})
+        .setLngLat([marker.lng, marker.lat])
+        .addTo(map.value);
+      app._instance?.props && (app._instance.props.marker = mapMarker);
+      markers.value.push(marker);
+      
+
+    })
+  }, (errorObject) => {
+    console.log('The read failed: ' + errorObject.name);
+  });
+
   map.value.on('moveend', async() => {
   try{
     const center = map.value.getCenter();
@@ -47,7 +92,7 @@ onMounted(() => {
   }
 });
 
-})
+});
 
 
 onUnmounted(() => {
@@ -62,46 +107,66 @@ const props = defineProps({
   cardExpanded: Boolean
 })
 
+// Function to save initial marker data and return its ID
+const saveInitialMarkerData = async (markerText, lat, lng) => {
+    const locationsRef = dbRef($firebaseDb, 'locations');
+    const newLocationRef = push(locationsRef); // Generates the unique ID
+
+    const date = new Date().toISOString();
+
+    try {
+        await set(newLocationRef, {
+            name: markerText,
+            date: date, 
+            lat: lat,
+            lng: lng
+        });
+        console.log("Initial marker saved with ID:", newLocationRef.key);
+        return newLocationRef.key; // Return the generated ID
+    } catch (error) {
+        console.error("Error saving initial marker:", error);
+        throw error;
+    }
+};
+
 watch(() => props.currentMode, async (newMode) => {
   const center = map.value.getCenter();
-
-  if (newMode === 'floating') {
-    // Floating marker: just a visual indicator at center
-    // You already have markerCard bound to floatingText, so no extra marker needed
-    return;
-  }
-
   if (newMode === 'confirmed') {
-    // Create persistent marker
-    const markerContent = document.createElement("div");
 
-    const app = createApp(markerPopup, {
-      text: props.floatingText,
-      marker: null,
-      unmount: () => {
-        app.unmount();
-        markerContent.remove();
-      }
-    });
-    app.mount(markerContent);
 
-    const marker = new maptilersdk.Marker({element: markerContent})
-      .setLngLat([center.lng, center.lat])
-      .addTo(map.value);
-
-    app._instance.props.marker = marker;
-    markers.value.push(marker);
-    
-
-    // Update confirmedMarker (so markerCard shows correct info)
     confirmedMarker.value = {
       lat: center.lat,
       lng: center.lng,
-      text: props.floatingText
+      text: props.floatingText,
     };
 
-    // Emit to parent to save to DB
-    // emit('confirmed-marker', confirmedMarker.value);
+    const newMarkerId = await saveInitialMarkerData(
+        confirmedMarker.value.text,
+        confirmedMarker.value.lat,
+        confirmedMarker.value.lng
+    );
+
+    // const markerContent = document.createElement("div");
+
+    // const app = createApp(markerPopup, {
+    //   text: props.floatingText,
+    //   marker: null,
+    //   markerId: newMarkerId,
+    //   unmount: () => {
+    //     app.unmount();
+    //     markerContent.remove();
+    //   }
+    // });
+    // app.mount(markerContent);
+
+    // const marker = new maptilersdk.Marker({element: markerContent})
+    //   .setLngLat([center.lng, center.lat])
+    //   .addTo(map.value);
+    // app._instance.props.marker = marker;
+    // markers.value.push(marker);
+    
+
+    emit('confirmed-marker', confirmedMarker.value);
   }
 });
 
