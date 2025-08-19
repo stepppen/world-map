@@ -8,7 +8,8 @@ export default defineNuxtPlugin(() => {
         projectId: useRuntimeConfig().public.firebaseProjectId,
         storageBucket: useRuntimeConfig().public.firebaseStorageBucket,
         messagingSenderId: useRuntimeConfig().public.firebaseMessagingSenderId,
-        appId: useRuntimeConfig().public.firebaseAppId
+        appId: useRuntimeConfig().public.firebaseAppId,
+        databaseURL: useRuntimeConfig().public.firebaseDatabaseURL
     };
     const app = initializeApp(firebaseConfig);
 
