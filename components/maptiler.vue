@@ -33,6 +33,8 @@ let emit = defineEmits(['update-floating-text', 'confirmed-marker', 'image-src']
 const { $firebaseDb } = useNuxtApp();
 
 onMounted(async () => {
+  const runtimeConfig = useRuntimeConfig();
+  console.log("Firebase Database URL:", runtimeConfig.public.firebaseDatabaseURL);
   maptilersdk.config.apiKey = import.meta.env.VITE_MAPTILER_API_KEY;
   const initialState = { lng: 139.753, lat: 35.6844, zoom: 14 };
 
@@ -42,7 +44,8 @@ onMounted(async () => {
     center: [initialState.lng, initialState.lat],
     zoom: initialState.zoom
   }));
-  const locationsRef = dbRef($firebaseDb, 'locations');
+  const { $firebaseDb } = useNuxtApp();
+  const locationsRef = dbRef($firebaseDb, 'locations')
   const renderedMarkerIds = new Set();
   onValue(locationsRef, (marker) => {
     

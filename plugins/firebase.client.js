@@ -1,24 +1,24 @@
 import { initializeApp } from "firebase/app";
-import { getDatabase } from 'firebase/database';
+import { getDatabase } from "firebase/database";
 
-export default defineNuxtPlugin(() => {
-    const firebaseConfig = {
-        apiKey: useRuntimeConfig().public.firebaseApiKey,
-        authDomain: useRuntimeConfig().public.firebaseAuthDomain,
-        projectId: useRuntimeConfig().public.firebaseProjectId,
-        storageBucket: useRuntimeConfig().public.firebaseStorageBucket,
-        messagingSenderId: useRuntimeConfig().public.firebaseMessagingSenderId,
-        appId: useRuntimeConfig().public.firebaseAppId,
-        databaseURL: useRuntimeConfig().public.firebaseDatabaseURL
-    };
-    const app = initializeApp(firebaseConfig);
+export default defineNuxtPlugin((nuxtApp) => {
+  // Runtime Config sauber holen
+  const runtimeConfig = useRuntimeConfig();
 
+  const firebaseConfig = {
+    apiKey: runtimeConfig.public.firebaseApiKey,
+    authDomain: runtimeConfig.public.firebaseAuthDomain,
+    projectId: runtimeConfig.public.firebaseProjectId,
+    storageBucket: runtimeConfig.public.firebaseStorageBucket,
+    messagingSenderId: runtimeConfig.public.firebaseMessagingSenderId,
+    appId: runtimeConfig.public.firebaseAppId,
+    databaseURL: runtimeConfig.public.firebaseDatabaseURL,
+  };
 
+  const app = initializeApp(firebaseConfig);
   const database = getDatabase(app);
-  return {
-    provide: {
-      firebaseApp: app,
-      firebaseDb: database
-    }
-  }
+
+  // Über Nuxt bereitstellen
+  nuxtApp.provide("firebaseApp", app);
+  nuxtApp.provide("firebaseDb", database);
 });
