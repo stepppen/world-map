@@ -29,9 +29,6 @@ let imageSrc = ref(null)
 const style = `https://api.maptiler.com/maps/0198248a-991e-798a-ad3f-dfc8fa370879/style.json?key=${import.meta.env.VITE_MAPTILER_API_KEY}`
 let emit = defineEmits(['update-floating-text', 'confirmed-marker', 'image-src']);
 
-
-const { $firebaseDb } = useNuxtApp();
-
 onMounted(async () => {
   const runtimeConfig = useRuntimeConfig();
   console.log("Firebase Database URL:", runtimeConfig.public.firebaseDatabaseURL);
