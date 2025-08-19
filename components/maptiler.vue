@@ -41,45 +41,45 @@ onMounted(async () => {
     center: [initialState.lng, initialState.lat],
     zoom: initialState.zoom
   }));
-  const { $firebaseDb } = useNuxtApp();
-  const locationsRef = dbRef($firebaseDb, 'locations')
-  const renderedMarkerIds = new Set();
-  onValue(locationsRef, (marker) => {
+  // const { $firebaseDb } = useNuxtApp();
+  // const locationsRef = dbRef($firebaseDb, 'locations')
+  // const renderedMarkerIds = new Set();
+  // onValue(locationsRef, (marker) => {
     
-    const data = marker.val();
-    if (!data) return; 
-    const entries = Object.entries(data); 
-    // if (Object.keys(entries).length === 0)return
-    // console.log(entries)
-    entries.forEach(([id, marker]) => {
+  //   const data = marker.val();
+  //   if (!data) return; 
+  //   const entries = Object.entries(data); 
+  //   // if (Object.keys(entries).length === 0)return
+  //   // console.log(entries)
+  //   entries.forEach(([id, marker]) => {
 
-      if (renderedMarkerIds.has(id)) return;
-      let imageSrcForMarker = marker.imageUrl || null;
-      renderedMarkerIds.add(id);
-      const markerContent = document.createElement("div");
-      const app = createApp(markerPopup, {
-        text: marker.name,
-        markerId: id,
-        imageSrc: imageSrcForMarker,
-        isOpen: false,
-        unmount: () => {
-          app.unmount();
-          markerContent.remove();
-        }
-      });
-      app.mount(markerContent);
-      // console.log(marker.lng)
-      const mapMarker = new maptilersdk.Marker({element: markerContent})
-        .setLngLat([marker.lng, marker.lat])
-        .addTo(map.value);
-      app._instance?.props && (app._instance.props.marker = mapMarker);
-      markers.value.push(marker);
+  //     if (renderedMarkerIds.has(id)) return;
+  //     let imageSrcForMarker = marker.imageUrl || null;
+  //     renderedMarkerIds.add(id);
+  //     const markerContent = document.createElement("div");
+  //     const app = createApp(markerPopup, {
+  //       text: marker.name,
+  //       markerId: id,
+  //       imageSrc: imageSrcForMarker,
+  //       isOpen: false,
+  //       unmount: () => {
+  //         app.unmount();
+  //         markerContent.remove();
+  //       }
+  //     });
+  //     app.mount(markerContent);
+  //     // console.log(marker.lng)
+  //     const mapMarker = new maptilersdk.Marker({element: markerContent})
+  //       .setLngLat([marker.lng, marker.lat])
+  //       .addTo(map.value);
+  //     app._instance?.props && (app._instance.props.marker = mapMarker);
+  //     markers.value.push(marker);
       
 
-    })
-  }, (errorObject) => {
-    console.log('The read failed: ' + errorObject.name);
-  });
+  //   })
+  // }, (errorObject) => {
+  //   console.log('The read failed: ' + errorObject.name);
+  // });
 
   map.value.on('moveend', async() => {
   try{
