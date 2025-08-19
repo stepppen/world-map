@@ -61,6 +61,7 @@ const date = ref(new Date().toISOString().split('T')[0]);
 const chosenPic = ref<HTMLImageElement | null>(null);
 const inputFile = ref<HTMLInputElement | null>(null);
 let isOpen = ref(props.isOpen ?? false);
+//hohoho
 // let wasSaved = ref(false);
 let emit = defineEmits(['complete-save'])
 
