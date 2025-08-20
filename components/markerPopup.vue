@@ -1,9 +1,9 @@
 <template>
   <div  class="card bg-neutral-200/10" :style="{ transform: `scale(${sizeChange})` }">
     <div class="rounded-full bg-neutral-200/10 position-marker"></div>
-    <div class="flex justify-between">
+    <div class="content-container flex justify-between">
       <div>
-        <h2>{{ text }}</h2>
+        <h2 class="place-name">{{ text }}</h2>
         <p>{{ date }}</p>
         
       </div>
@@ -194,6 +194,21 @@ img{
   border-radius: 10%;
   margin-bottom: 1rem;
 
+}
+
+.content-container{
+  display: inline-flex;
+  max-width: 100%;
+  height: auto;
+}
+.content-container .place-name{
+  display: inline-block;
+  width: auto;
+  max-width: 200px; /* Adjust this value as needed */
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+  line-height: 1.2;
 }
 
 /* HOVER EDIT FIELD */

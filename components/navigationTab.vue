@@ -11,8 +11,12 @@
                                 </div>
                         </div>
                 </div>
-                <span class="text-center inline-block align-middle">Digital Pinboard</span>
-                <PrimitivesTab />
+                <!-- <span class="text-center inline-block align-middle">Digital Pinboard</span> -->
+                 <div class="flex gap-2">
+                         <DarkMode />
+                         <Settings />
+                 </div>
+                <!-- <PrimitivesTab /> -->
         </div>
 </template>
 

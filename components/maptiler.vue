@@ -18,27 +18,38 @@ import '@maptiler/sdk/dist/maptiler-sdk.css';
 import { createApp } from 'vue'
 import markerPopup from '@/components/markerPopup.vue'
 import { ref as dbRef, push, set, onValue } from 'firebase/database';
+const colorMode = useColorMode()
+const { lightMode, darkMode } = useMapStyles()
+
+
+const currentStyle = computed(() => {
+  return colorMode.value === 'dark' ? darkMode : lightMode
+})
 
 
 const mapContainer = shallowRef(null);
 const map = shallowRef(null);
 const confirmedMarker = ref(null)
 const markers = ref([]);
-let imageSrc = ref(null)
-const style = `https://api.maptiler.com/maps/0198248a-991e-798a-ad3f-dfc8fa370879/style.json?key=${import.meta.env.VITE_MAPTILER_API_KEY}`
+// const style = `https://api.maptiler.com/maps/0198248a-991e-798a-ad3f-dfc8fa370879/style.json?key=${import.meta.env.VITE_MAPTILER_API_KEY}`
 let emit = defineEmits(['update-floating-text', 'confirmed-marker', 'image-src']);
 
 onMounted(async () => {
   const runtimeConfig = useRuntimeConfig();
   console.log("Firebase Database URL:", runtimeConfig.public.firebaseDatabaseURL);
   maptilersdk.config.apiKey = import.meta.env.VITE_MAPTILER_API_KEY;
-  const initialState = { lng: 139.753, lat: 35.6844, zoom: 14 };
+  const initialState = { lng: 10, lat: 50, zoom: 4 };
 
   map.value = markRaw(new maptilersdk.Map({
     container: mapContainer.value,
-    style: style,
+    style: currentStyle.value,
     center: [initialState.lng, initialState.lat],
-    zoom: initialState.zoom
+    zoom: initialState.zoom,
+    navigationControl: false,
+    geolocateControl: false,
+    scaleControl: false,
+    fullscreenControl: false,
+    terrainControl: false,
   }));
   const { database } = useFirebase();
   const locationsRef = dbRef(database, 'locations');
@@ -93,6 +104,11 @@ onMounted(async () => {
 
 });
 
+watch(currentStyle, (newStyle) => {
+  if (map.value) {
+    map.value.setStyle(newStyle)
+  }
+})
 
 onUnmounted(() => {
   map.value?.remove();
