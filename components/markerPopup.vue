@@ -34,15 +34,19 @@
 </template>
 
 <script setup lang="ts">
-import { useNuxtApp } from '#app';
 import * as maptilersdk from '@maptiler/sdk';
 import { useMapStore } from '@/stores/mapStore'
 import { ref, getCurrentInstance } from 'vue'
-import { ref as dbRef, update, remove as deleteDb, get } from 'firebase/database'; // 'get' is for reading
+import { ref as dbRef, update, remove as deleteDb, get } from 'firebase/database';
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import type { FirebaseStorage } from 'firebase/storage';
+
 const mapStore = useMapStore()
-// const { $firebaseDb } = useNuxtApp();
+
+// Use Firebase composable instead of useNuxtApp
+const { app: firebaseApp, database: firebaseDb } = useFirebase();
+const storage: FirebaseStorage = getStorage(firebaseApp);
+
 const props = defineProps<{
   text: string,
   marker?: maptilersdk.Marker | null,
@@ -53,18 +57,11 @@ const props = defineProps<{
   unmount: () => void
 }>()
 
-const { $firebaseDb, $firebaseApp } = useNuxtApp();
-const storage: FirebaseStorage = getStorage($firebaseApp);
-
-
 const date = ref(new Date().toISOString().split('T')[0]);
 const chosenPic = ref<HTMLImageElement | null>(null);
 const inputFile = ref<HTMLInputElement | null>(null);
 let isOpen = ref(props.isOpen ?? false);
-//hohoho
-// let wasSaved = ref(false);
 let emit = defineEmits(['complete-save'])
-
 
 // Generate a unique id for this instance
 const uniqueId = `marker-file-input-${Math.random().toString(36).slice(2)}`;
@@ -72,7 +69,6 @@ const uniqueId = `marker-file-input-${Math.random().toString(36).slice(2)}`;
 function onFileChange() {
   if (inputFile.value && inputFile.value.files && inputFile.value.files[0] && chosenPic.value) {
     chosenPic.value.src = URL.createObjectURL(inputFile.value.files[0]);
-
   }
 }
 
@@ -86,14 +82,13 @@ const sizeChange = computed(() =>{
 })
 
 const onDelete = async () => {
-  
   if (!props.markerId) {
     console.warn("Cannot delete: markerId is not available.");
     props.unmount();
     return;
   }
 
-  const markerDataRef = dbRef($firebaseDb, `locations/${props.markerId}`);
+  const markerDataRef = dbRef(firebaseDb, `locations/${props.markerId}`);
 
   try {
     // 1. Get current data to check for image URL
@@ -102,7 +97,6 @@ const onDelete = async () => {
 
     if (data && data.imageUrl) {
       // 2. Delete image from Cloud Storage
-      
       const imageStorageRef = storageRef(storage, data.imageUrl);
       try {
         await deleteObject(imageStorageRef);
@@ -122,7 +116,6 @@ const onDelete = async () => {
     // Handle error, maybe show a toast message
   }
 };
-
 
 const onSave = async () => {
   console.log(getStorage)
@@ -154,7 +147,7 @@ const onSave = async () => {
   }
 
   // 2. Update the existing marker data in Realtime Database
-  const markerRef = dbRef($firebaseDb, `locations/${props.markerId}`);
+  const markerRef = dbRef(firebaseDb, `locations/${props.markerId}`);
   const updates: { [key: string]: any } = {
     date: date.value, // Save the selected date
   };

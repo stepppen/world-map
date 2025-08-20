@@ -14,6 +14,9 @@ export default defineNuxtConfig({
   supabase: {
     redirect: false
   },
+    plugins: [
+    '~/plugins/firebase.client.js'
+  ],
     runtimeConfig: {
     public: {
       firebaseApiKey: process.env.NUXT_PUBLIC_FIREBASE_API_KEY,
